@@ -86,8 +86,8 @@ export class UserResolver {
     };
   }
 
-  @Query(() => String)
-  hello() {
-    return 'Hello from graphql';
+  @Query(() => [User])
+  users(): Promise<User[]> {
+    return User.find({});
   }
 }
