@@ -65,6 +65,8 @@ export class UserResolver {
         user: await User.create({
           login: options.login,
           password: hashedPassword,
+          name: options.login,
+          role: 'admin',
         }).save(),
       };
     } catch (e) {
