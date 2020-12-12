@@ -24,7 +24,7 @@ export class Link extends BaseEntity {
 
   @Field()
   @Column()
-  url: string;
+  link: string;
 
   @Field()
   @Column({ type: 'text', default: '' })
