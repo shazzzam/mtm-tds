@@ -1,5 +1,6 @@
 import {
   Arg,
+  Ctx,
   Field,
   InputType,
   Mutation,
@@ -11,6 +12,7 @@ import argon2 from 'argon2';
 
 import { User } from './user.schema';
 import { FieldError } from '../../utils/fieldError';
+import { MyContext } from '../../types';
 
 @InputType()
 class UsernamePasswordInput {
@@ -87,7 +89,43 @@ export class UserResolver {
   }
 
   @Query(() => [User])
-  users(): Promise<User[]> {
-    return User.find({});
+  async users(): Promise<User[]> {
+    return await User.find({});
+  }
+
+  @Mutation(() => UserResponse)
+  async login(
+    @Arg('options', () => UsernamePasswordInput) options: UsernamePasswordInput,
+    @Ctx() { req }: MyContext
+  ): Promise<UserResponse> {
+    const user = await User.findOne({ where: { login: options.login } });
+    if (!user) {
+      return {
+        errors: [
+          {
+            field: 'login',
+            message: 'Пользователя с таким логином не существует',
+          },
+        ],
+      };
+    }
+    const isPasswordValid = await argon2.verify(
+      user.password,
+      options.password
+    );
+    if (!isPasswordValid) {
+      return {
+        errors: [
+          {
+            field: 'password',
+            message: 'Пароль не верный',
+          },
+        ],
+      };
+    }
+
+    req.session.userId = user.id;
+
+    return { user };
   }
 }
