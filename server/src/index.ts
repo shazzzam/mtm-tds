@@ -11,6 +11,7 @@ import { MyContext } from './types';
 import { PORT, COOKIE_NAME, DB, __prod__, JWT_SECRET_KEY } from './constants';
 import { UserResolver } from './entities/user/user.resolver';
 import { User } from './entities/user/user.schema';
+import { Link } from './entities/link/link.schema';
 
 const main = async () => {
   const app = express();
@@ -21,7 +22,7 @@ const main = async () => {
     password: DB.password,
     logging: true,
     synchronize: true,
-    entities: [User],
+    entities: [User, Link],
   });
 
   const RedisStore = connectRedis(session);
