@@ -89,11 +89,6 @@ export class UserResolver {
     };
   }
 
-  @Query(() => [User])
-  async users(): Promise<User[]> {
-    return await User.find({});
-  }
-
   @Mutation(() => UserResponse)
   async login(
     @Arg('options', () => UsernamePasswordInput) options: UsernamePasswordInput,
@@ -143,5 +138,29 @@ export class UserResolver {
         resolve(true);
       });
     });
+  }
+
+  @Mutation(() => Boolean)
+  async changePassword(
+    @Arg('password', () => String) password: string,
+    @Ctx() { req }: MyContext
+  ): Promise<boolean> {
+    return new Promise(async (resolve) => {
+      if (password.length < 3) {
+        resolve(false);
+      }
+      if (!req.session.userId) {
+        resolve(false);
+        return;
+      }
+      const hashedPassword = await argon2.hash(password);
+      User.update(req.session.userId, { password: hashedPassword });
+      resolve(true);
+    });
+  }
+
+  @Query(() => [User])
+  async users(): Promise<User[]> {
+    return await User.find({});
   }
 }
