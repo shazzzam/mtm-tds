@@ -13,6 +13,7 @@ import { FieldError } from '../../utils/fieldError';
 import { MyContext } from '../../types';
 import { Link } from './link.schema';
 import { getSessionUser } from '../../utils/sessionError';
+import { Like } from 'typeorm';
 
 @InputType()
 class LinkInput {
@@ -106,12 +107,24 @@ export class LinkResolver {
   }
 
   @Query(() => [Link])
-  async links(@Ctx() { req }: MyContext): Promise<Link[]> {
+  async links(
+    @Arg('options', () => LinkInput, { nullable: true })
+    options: LinkInput = { link: '' },
+    @Ctx() { req }: MyContext
+  ): Promise<Link[]> {
     const user = await getSessionUser(req);
     if (!user) {
       return [];
     }
-    const links = await Link.find({ relations: ['user'] });
+
+    const links = await Link.find({
+      where: {
+        link: Like(`%${options.link || ''}%`),
+        description: Like(`%${options.description || ''}%`),
+      },
+      relations: ['user'],
+    });
+
     return links;
   }
 }
