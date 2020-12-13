@@ -54,11 +54,32 @@ export class CompanyResolver {
       };
     }
 
-    const company = await Company.create({
-      ...options,
-      uri: options.uri ? options.uri : await generateUri(),
-      user,
-    }).save();
-    return { company };
+    try {
+      const company = await Company.create({
+        ...options,
+        uri: options.uri ? options.uri : await generateUri(),
+        user,
+      }).save();
+      return { company };
+    } catch (e) {
+      if (e.code === '23505') {
+        return {
+          errors: [
+            {
+              field: 'uri',
+              message: 'url редиректа занят',
+            },
+          ],
+        };
+      }
+    }
+    return {
+      errors: [
+        {
+          field: 'unknown',
+          message: 'unknown',
+        },
+      ],
+    };
   }
 }
