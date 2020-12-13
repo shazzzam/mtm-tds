@@ -91,6 +91,20 @@ export class LinkResolver {
     }
   }
 
+  @Mutation(() => Boolean)
+  async linkDelete(
+    @Arg('id', () => Number) id: number,
+    @Ctx() { req }: MyContext
+  ): Promise<Boolean> {
+    const user = await getSessionUser(req);
+    if (!user) {
+      return false;
+    }
+
+    const res = await Link.delete({ id });
+    return !!res.affected;
+  }
+
   @Query(() => [Link])
   async links(@Ctx() { req }: MyContext): Promise<Link[]> {
     const user = await getSessionUser(req);
