@@ -132,6 +132,20 @@ export class CompanyResolver {
     return { company };
   }
 
+  @Mutation(() => Boolean)
+  async companyDelete(
+    @Arg('id', () => Number) id: number,
+    @Ctx() { req }: MyContext
+  ): Promise<Boolean> {
+    const user = await getSessionUser(req);
+    if (!user) {
+      return false;
+    }
+
+    const res = await Company.delete({ id });
+    return !!res.affected;
+  }
+
   @Query(() => [Company])
   async companies(@Ctx() { req }: MyContext): Promise<Company[]> {
     const user = await getSessionUser(req);
