@@ -5,6 +5,7 @@ import {
   InputType,
   Mutation,
   ObjectType,
+  Query,
   Resolver,
 } from 'type-graphql';
 
@@ -94,6 +95,36 @@ export class MailResolver {
         {
           field: 'unknown',
           message: 'unknown',
+        },
+      ],
+    };
+  }
+
+  @Query(() => MailResponse)
+  async mail(
+    @Arg('id', () => Number) id: number,
+    @Ctx() { req }: MyContext
+  ): Promise<MailResponse> {
+    const user = await getSessionUser(req);
+    if (!user) {
+      return {
+        errors: [
+          {
+            field: 'session',
+            message: 'Вы не авторизованы',
+          },
+        ],
+      };
+    }
+    const mail = await Mail.findOne({ id }, { relations: ['user'] });
+    if (mail) {
+      return { mail };
+    }
+    return {
+      errors: [
+        {
+          field: 'id',
+          message: 'Нет такого мейла',
         },
       ],
     };
