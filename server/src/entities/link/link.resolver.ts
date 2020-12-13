@@ -14,6 +14,7 @@ import { MyContext } from '../../types';
 import { Link } from './link.schema';
 import { getSessionUser } from '../../utils/sessionError';
 import { Like } from 'typeorm';
+import { PaginatorInput } from '../../types';
 
 @InputType()
 class LinkInput {
@@ -31,6 +32,15 @@ class LinkResponse {
 
   @Field(() => Link, { nullable: true })
   link?: Link;
+}
+
+@ObjectType()
+class PaginatedLinks {
+  @Field(() => [Link])
+  links: Link[];
+
+  @Field()
+  hasMore: boolean;
 }
 
 @Resolver()
@@ -106,15 +116,54 @@ export class LinkResolver {
     return !!res.affected;
   }
 
-  @Query(() => [Link])
+  @Query(() => LinkResponse)
+  async link(
+    @Arg('id', () => Number) id: number,
+    @Ctx() { req }: MyContext
+  ): Promise<LinkResponse> {
+    const user = await getSessionUser(req);
+    if (!user) {
+      return {
+        errors: [
+          {
+            field: 'session',
+            message: 'Вы не авторизованы',
+          },
+        ],
+      };
+    }
+
+    const link = await Link.findOne({ where: { id }, relations: ['user'] });
+    if (link) {
+      return {
+        link: link,
+      };
+    }
+
+    return {
+      errors: [
+        {
+          field: 'id',
+          message: 'нет такой ссылки',
+        },
+      ],
+    };
+  }
+
+  @Query(() => PaginatedLinks)
   async links(
     @Arg('options', () => LinkInput, { nullable: true })
     options: LinkInput = { link: '' },
+    @Arg('paginator', () => PaginatorInput, { nullable: true })
+    paginator: PaginatorInput = { take: 10, skip: 0 },
     @Ctx() { req }: MyContext
-  ): Promise<Link[]> {
+  ): Promise<PaginatedLinks> {
     const user = await getSessionUser(req);
     if (!user) {
-      return [];
+      return {
+        links: [],
+        hasMore: false,
+      };
     }
 
     const links = await Link.find({
@@ -122,9 +171,13 @@ export class LinkResolver {
         link: Like(`%${options.link || ''}%`),
         description: Like(`%${options.description || ''}%`),
       },
+      ...paginator,
       relations: ['user'],
     });
 
-    return links;
+    return {
+      links,
+      hasMore: links.length === paginator.take,
+    };
   }
 }
