@@ -120,4 +120,38 @@ export class CompanyResolver {
     const companies = await Company.find({ relations: ['user', 'links'] });
     return companies;
   }
+
+  @Query(() => CompanyResponse)
+  async company(
+    @Arg('id', () => Number) id: number,
+    @Ctx() { req }: MyContext
+  ): Promise<CompanyResponse> {
+    const user = await getSessionUser(req);
+    if (!user) {
+      return {
+        errors: [
+          {
+            field: 'session',
+            message: 'Вы не авторизованы',
+          },
+        ],
+      };
+    }
+
+    const company = await Company.findOne(
+      { id },
+      { relations: ['user', 'links'] }
+    );
+    if (company) {
+      return { company };
+    }
+    return {
+      errors: [
+        {
+          field: 'id',
+          message: 'Нет компании с таким id',
+        },
+      ],
+    };
+  }
 }
