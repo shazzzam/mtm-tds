@@ -8,12 +8,12 @@ import {
   Query,
   Resolver,
 } from 'type-graphql';
+import { Like } from 'typeorm';
 
 import { FieldError } from '../../utils/fieldError';
 import { MyContext } from '../../types';
 import { Link } from './link.schema';
 import { getSessionUser } from '../../utils/sessionError';
-import { Like } from 'typeorm';
 import { PaginatorInput } from '../../types';
 
 @InputType()
@@ -154,8 +154,10 @@ export class LinkResolver {
   async links(
     @Arg('options', () => LinkInput, { nullable: true })
     options: LinkInput = { link: '' },
+
     @Arg('paginator', () => PaginatorInput, { nullable: true })
     paginator: PaginatorInput = { take: 10, skip: 0 },
+
     @Ctx() { req }: MyContext
   ): Promise<PaginatedLinks> {
     const user = await getSessionUser(req);

@@ -8,6 +8,7 @@ import {
   Ctx,
   Query,
 } from 'type-graphql';
+import { In, Like } from 'typeorm';
 
 import { MyContext } from '../../types';
 import { getSessionUser } from '../../utils/sessionError';
@@ -15,7 +16,7 @@ import { FieldError } from '../../utils/fieldError';
 import { Company } from './company.schema';
 import { generateUri } from '../../utils/generateUri';
 import { Link } from '../link/link.schema';
-import { In } from 'typeorm';
+import { PaginatorInput } from '../../types';
 
 @InputType()
 class CompanyInput {
@@ -36,6 +37,15 @@ class CompanyResponse {
 
   @Field(() => Company, { nullable: true })
   company?: Company;
+}
+
+@ObjectType()
+class PaginatedCompanies {
+  @Field(() => [Company])
+  companies: Company[];
+
+  @Field()
+  hasMore: boolean;
 }
 
 @Resolver()
@@ -179,15 +189,38 @@ export class CompanyResolver {
     return !!res.affected;
   }
 
-  @Query(() => [Company])
-  async companies(@Ctx() { req }: MyContext): Promise<Company[]> {
+  @Query(() => PaginatedCompanies)
+  async companies(
+    @Arg('options', () => CompanyInput, { nullable: true })
+    options: CompanyInput = {},
+
+    @Arg('paginator', () => PaginatorInput, { nullable: true })
+    paginator: PaginatorInput = { take: 10, skip: 0 },
+
+    @Ctx() { req }: MyContext
+  ): Promise<PaginatedCompanies> {
     const user = await getSessionUser(req);
     if (!user) {
-      return [];
+      return {
+        hasMore: false,
+        companies: [],
+      };
     }
 
-    const companies = await Company.find({ relations: ['user', 'links'] });
-    return companies;
+    const companies = await Company.find({
+      where: {
+        name: Like(`%${options.name || ''}%`),
+        description: Like(`%${options.description || ''}%`),
+        uri: Like(`%${options.uri || ''}%`),
+      },
+      ...paginator,
+      relations: ['user', 'links'],
+    });
+
+    return {
+      hasMore: companies.length === paginator.take,
+      companies,
+    };
   }
 
   @Query(() => CompanyResponse)
