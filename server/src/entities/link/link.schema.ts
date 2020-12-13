@@ -4,41 +4,35 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-  Entity,
-  OneToMany,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
 
-import { Link } from '../link/link.schema';
->>>>>>> feature/7
+import { User } from '../user/user.schema';
 
 @ObjectType()
 @Entity()
-export class User extends BaseEntity {
+export class Link extends BaseEntity {
   @Field()
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @OneToMany(() => Link, (link) => link.user)
-  links: Link[];
+  @Field(() => User)
+  @ManyToOne(() => User, (user) => user.links)
+  user: User;
 
   @Field()
-  @Column({ unique: true })
-  login!: string;
-
   @Column()
-  password!: string;
+  link: string;
 
   @Field()
-  @Column({ default: '' })
-  name: string;
+  @Column({ type: 'text', default: '' })
+  description: string;
 
   @Field()
-  @Column({ default: 'admin' })
-  role: string;
+  @Column({ default: 0 })
+  transition: number;
 
   @Field(() => String)
   @CreateDateColumn()
