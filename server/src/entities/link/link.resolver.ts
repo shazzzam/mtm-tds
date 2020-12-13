@@ -5,6 +5,7 @@ import {
   InputType,
   Mutation,
   ObjectType,
+  Query,
   Resolver,
 } from 'type-graphql';
 
@@ -88,5 +89,15 @@ export class LinkResolver {
         ],
       };
     }
+  }
+
+  @Query(() => [Link])
+  async links(@Ctx() { req }: MyContext): Promise<Link[]> {
+    const user = await getSessionUser(req);
+    if (!user) {
+      return [];
+    }
+    const links = await Link.find({ relations: ['user'] });
+    return links;
   }
 }
