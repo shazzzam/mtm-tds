@@ -6,14 +6,10 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
-} from 'typeorm';
-  Entity,
   OneToMany,
-  PrimaryGeneratedColumn,
 } from 'typeorm';
 
 import { Link } from '../link/link.schema';
->>>>>>> feature/7
 
 @ObjectType()
 @Entity()
