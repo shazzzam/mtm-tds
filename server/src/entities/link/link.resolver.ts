@@ -11,7 +11,7 @@ import {
 import { FieldError } from '../../utils/fieldError';
 import { MyContext } from '../../types';
 import { Link } from './link.schema';
-import { User } from '../user/user.schema';
+import { getSessionUser } from '../../utils/sessionError';
 
 @InputType()
 class LinkInput {
@@ -38,9 +38,7 @@ export class LinkResolver {
     @Arg('options', () => LinkInput) options: LinkInput,
     @Ctx() { req }: MyContext
   ): Promise<LinkResponse> {
-    const user = req.session.userId
-      ? await User.findOne({ id: req.session.userId })
-      : null;
+    const user = await getSessionUser(req);
     if (!user) {
       return {
         errors: [
@@ -55,5 +53,40 @@ export class LinkResolver {
     const link = await Link.create({ ...options, user }).save();
 
     return { link };
+  }
+
+  @Mutation(() => LinkResponse)
+  async linkUpdate(
+    @Arg('options', () => LinkInput) options: LinkInput,
+    @Arg('id', () => Number) id: number,
+    @Ctx() { req }: MyContext
+  ): Promise<LinkResponse> {
+    const user = await getSessionUser(req);
+    if (!user) {
+      return {
+        errors: [
+          {
+            field: 'session',
+            message: 'Вы не авторизованы',
+          },
+        ],
+      };
+    }
+
+    try {
+      await Link.update({ id }, { ...options, user });
+      const link = await Link.findOne(id, { relations: ['user'] });
+
+      return { link: link };
+    } catch (e) {
+      return {
+        errors: [
+          {
+            field: 'unknown',
+            message: e.message,
+          },
+        ],
+      };
+    }
   }
 }

@@ -1,6 +1,8 @@
 import { Request, Response } from 'express';
 
+export type MyRequest = Request & { session: Express.Session };
+
 export type MyContext = {
-  req: Request & { session: Express.Session };
+  req: MyRequest;
   res: Response;
 };
