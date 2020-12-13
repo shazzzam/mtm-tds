@@ -15,6 +15,7 @@ import { Link } from './entities/link/link.schema';
 import { LinkResolver } from './entities/link/link.resolver';
 import { Company } from './entities/company/company.schema';
 import { CompanyResolver } from './entities/company/company.resolver';
+import { Mail } from './entities/mail/mail.schema';
 
 const main = async () => {
   const app = express();
@@ -25,7 +26,7 @@ const main = async () => {
     password: DB.password,
     logging: true,
     synchronize: true,
-    entities: [User, Link, Company],
+    entities: [User, Link, Company, Mail],
   });
 
   const RedisStore = connectRedis(session);

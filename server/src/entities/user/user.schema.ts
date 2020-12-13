@@ -11,6 +11,7 @@ import {
 
 import { Company } from '../company/company.schema';
 import { Link } from '../link/link.schema';
+import { Mail } from '../mail/mail.schema';
 
 @ObjectType()
 @Entity()
@@ -24,6 +25,9 @@ export class User extends BaseEntity {
 
   @OneToMany(() => Company, (company) => company.user)
   companies: Company[];
+
+  @OneToMany(() => Mail, (mail) => mail.user)
+  mails: Mail[];
 
   @Field()
   @Column({ unique: true })
