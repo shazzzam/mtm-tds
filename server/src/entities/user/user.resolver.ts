@@ -14,6 +14,7 @@ import { User } from './user.schema';
 import { FieldError } from '../../utils/fieldError';
 import { MyContext } from '../../types';
 import { COOKIE_NAME } from '../../constants';
+import { getSessionUser } from '../../utils/sessionError';
 
 @InputType()
 class UsernamePasswordInput {
@@ -159,6 +160,37 @@ export class UserResolver {
       User.update(req.session.userId, { password: hashedPassword });
       resolve(true);
     });
+  }
+
+  @Mutation(() => Boolean)
+  async changeName(
+    @Arg('name', () => String) name: string,
+    @Ctx() { req }: MyContext
+  ): Promise<Boolean> {
+    const user = await getSessionUser(req);
+    if (!user) {
+      return false;
+    }
+    user.name = name;
+    user.save();
+    return true;
+  }
+
+  @Query(() => UserResponse)
+  async me(@Ctx() { req }: MyContext): Promise<UserResponse> {
+    const user = await getSessionUser(req);
+    if (!user) {
+      return {
+        errors: [
+          {
+            field: 'session',
+            message: 'Вы не авторизованы',
+          },
+        ],
+      };
+    }
+
+    return { user };
   }
 
   @Query(() => [User])
