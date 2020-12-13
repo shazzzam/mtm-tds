@@ -6,6 +6,7 @@ import {
   Mutation,
   Arg,
   Ctx,
+  Query,
 } from 'type-graphql';
 
 import { MyContext } from '../../types';
@@ -107,5 +108,16 @@ export class CompanyResolver {
     company.save();
 
     return true;
+  }
+
+  @Query(() => [Company])
+  async companies(@Ctx() { req }: MyContext): Promise<Company[]> {
+    const user = await getSessionUser(req);
+    if (!user) {
+      return [];
+    }
+
+    const companies = await Company.find({ relations: ['user', 'links'] });
+    return companies;
   }
 }
