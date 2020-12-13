@@ -127,9 +127,42 @@ export class CompanyResolver {
       };
     }
 
-    await Company.update({ id }, { ...options });
-    const company = await Company.findOne(id, { relations: ['user', 'links'] });
-    return { company };
+    try {
+      await Company.update({ id }, { ...options });
+      const company = await Company.findOne(id, {
+        relations: ['user', 'links'],
+      });
+      if (!company) {
+        return {
+          errors: [
+            {
+              field: 'id',
+              message: 'Такой компании не существует',
+            },
+          ],
+        };
+      }
+      return { company };
+    } catch (e) {
+      if (e.code === '23505') {
+        return {
+          errors: [
+            {
+              field: 'uri',
+              message: 'URI уже занят',
+            },
+          ],
+        };
+      }
+      return {
+        errors: [
+          {
+            field: 'unknown',
+            message: e.message,
+          },
+        ],
+      };
+    }
   }
 
   @Mutation(() => Boolean)
