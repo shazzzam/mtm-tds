@@ -13,6 +13,8 @@ import { getSessionUser } from '../../utils/sessionError';
 import { FieldError } from '../../utils/fieldError';
 import { Company } from './company.schema';
 import { generateUri } from '../../utils/generateUri';
+import { Link } from '../link/link.schema';
+import { In } from 'typeorm';
 
 @InputType()
 class CompanyInput {
@@ -81,5 +83,29 @@ export class CompanyResolver {
         },
       ],
     };
+  }
+
+  @Mutation(() => Boolean)
+  async companyChangeLinks(
+    @Arg('id', () => Number) id: number,
+    @Arg('linksIds', () => [Number]) linksIds: Array<number>,
+    @Ctx() { req }: MyContext
+  ): Promise<Boolean> {
+    const user = await getSessionUser(req);
+    if (!user) {
+      return false;
+    }
+    const company = await Company.findOne({ id });
+    if (!company) {
+      return false;
+    }
+
+    const links = await Link.find({ where: { id: In(linksIds) } });
+    console.log(links);
+
+    company.links = links;
+    company.save();
+
+    return true;
   }
 }

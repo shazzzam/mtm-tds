@@ -4,11 +4,14 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinTable,
+  ManyToMany,
   ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 
+import { Link } from '../link/link.schema';
 import { User } from '../user/user.schema';
 
 @ObjectType()
@@ -21,6 +24,11 @@ export class Company extends BaseEntity {
   @Field(() => User)
   @ManyToOne(() => User, (user) => user.companies)
   user: User;
+
+  @Field(() => [Link])
+  @ManyToMany(() => Link, (link) => link.companies)
+  @JoinTable()
+  links: Link[];
 
   @Field()
   @Column({ default: 'новая компания' })

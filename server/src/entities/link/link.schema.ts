@@ -7,8 +7,10 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
+  ManyToMany,
 } from 'typeorm';
 
+import { Company } from '../company/company.schema';
 import { User } from '../user/user.schema';
 
 @ObjectType()
@@ -21,6 +23,10 @@ export class Link extends BaseEntity {
   @Field(() => User)
   @ManyToOne(() => User, (user) => user.links)
   user: User;
+
+  @Field(() => [Company])
+  @ManyToMany(() => Company, (company) => company.links)
+  companies: Company[];
 
   @Field()
   @Column()
