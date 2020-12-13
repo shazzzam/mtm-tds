@@ -16,6 +16,7 @@ import { LinkResolver } from './entities/link/link.resolver';
 import { Company } from './entities/company/company.schema';
 import { CompanyResolver } from './entities/company/company.resolver';
 import { Mail } from './entities/mail/mail.schema';
+import { MailResolver } from './entities/mail/mail.resolver';
 
 const main = async () => {
   const app = express();
@@ -54,7 +55,7 @@ const main = async () => {
 
   const apolloServer = new ApolloServer({
     schema: await buildSchema({
-      resolvers: [UserResolver, LinkResolver, CompanyResolver],
+      resolvers: [UserResolver, LinkResolver, CompanyResolver, MailResolver],
       validate: false,
     }),
     context: ({ req, res }): MyContext => ({ req, res }),
