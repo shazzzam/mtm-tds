@@ -9,6 +9,7 @@ import {
   OneToMany,
 } from 'typeorm';
 
+import { Company } from '../company/company.schema';
 import { Link } from '../link/link.schema';
 
 @ObjectType()
@@ -20,6 +21,9 @@ export class User extends BaseEntity {
 
   @OneToMany(() => Link, (link) => link.user)
   links: Link[];
+
+  @OneToMany(() => Company, (company) => company.user)
+  companies: Company[];
 
   @Field()
   @Column({ unique: true })

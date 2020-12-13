@@ -4,41 +4,43 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinTable,
+  ManyToMany,
   ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
-  ManyToMany,
 } from 'typeorm';
 
-import { Company } from '../company/company.schema';
+import { Link } from '../link/link.schema';
 import { User } from '../user/user.schema';
 
 @ObjectType()
 @Entity()
-export class Link extends BaseEntity {
+export class Company extends BaseEntity {
   @Field()
   @PrimaryGeneratedColumn()
   id!: number;
 
   @Field(() => User)
-  @ManyToOne(() => User, (user) => user.links)
+  @ManyToOne(() => User, (user) => user.companies)
   user: User;
 
-  @Field(() => [Company])
-  @ManyToMany(() => Company, (company) => company.links)
-  companies: Company[];
+  @Field(() => [Link])
+  @ManyToMany(() => Link, (link) => link.companies)
+  @JoinTable()
+  links: Link[];
 
   @Field()
-  @Column()
-  link: string;
+  @Column({ default: 'новая компания' })
+  name: string;
 
   @Field()
-  @Column({ type: 'text', default: '' })
+  @Column({ unique: true })
+  uri: string;
+
+  @Field()
+  @Column({ nullable: true, default: '' })
   description: string;
-
-  @Field()
-  @Column({ default: 0 })
-  transition: number;
 
   @Field(() => String)
   @CreateDateColumn()
