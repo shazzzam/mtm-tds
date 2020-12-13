@@ -102,12 +102,34 @@ export class CompanyResolver {
     }
 
     const links = await Link.find({ where: { id: In(linksIds) } });
-    console.log(links);
 
     company.links = links;
     company.save();
 
     return true;
+  }
+
+  @Mutation(() => CompanyResponse)
+  async companyUpdate(
+    @Arg('id', () => Number) id: number,
+    @Arg('options', () => CompanyInput) options: CompanyInput,
+    @Ctx() { req }: MyContext
+  ): Promise<CompanyResponse> {
+    const user = await getSessionUser(req);
+    if (!user) {
+      return {
+        errors: [
+          {
+            field: 'session',
+            message: 'Вы не авторизованы',
+          },
+        ],
+      };
+    }
+
+    await Company.update({ id }, { ...options });
+    const company = await Company.findOne(id, { relations: ['user', 'links'] });
+    return { company };
   }
 
   @Query(() => [Company])
