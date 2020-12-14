@@ -130,6 +130,20 @@ export class MailResolver {
     };
   }
 
+  @Mutation(() => Boolean)
+  async mailDelete(
+    @Arg('id', () => Number) id: number,
+    @Ctx() { req }: MyContext
+  ): Promise<boolean> {
+    const user = await getSessionUser(req);
+    if (!user) {
+      return false;
+    }
+
+    const res = await Mail.delete({ id });
+    return !!res.affected;
+  }
+
   @Query(() => [Mail])
   async mails(@Ctx() { req }: MyContext): Promise<Mail[]> {
     const user = await getSessionUser(req);
