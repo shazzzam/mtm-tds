@@ -14,6 +14,7 @@ import { MyContext } from '../../types';
 import { generateUri } from '../../utils/generateUri';
 import { Mail } from './mail.schema';
 import { getSessionUser } from '../../utils/sessionError';
+import { getByIdResolver } from '../../utils/genericResolvers';
 
 @InputType()
 class MailInput {
@@ -105,29 +106,13 @@ export class MailResolver {
     @Arg('id', () => Number) id: number,
     @Ctx() { req }: MyContext
   ): Promise<MailResponse> {
-    const user = await getSessionUser(req);
-    if (!user) {
-      return {
-        errors: [
-          {
-            field: 'session',
-            message: 'Вы не авторизованы',
-          },
-        ],
-      };
-    }
-    const mail = await Mail.findOne({ id }, { relations: ['user'] });
-    if (mail) {
-      return { mail };
-    }
-    return {
-      errors: [
-        {
-          field: 'id',
-          message: 'Нет такого мейла',
-        },
-      ],
-    };
+    return getByIdResolver({
+      id,
+      req,
+      model: Mail,
+      modelName: 'почты',
+      relations: ['user'],
+    });
   }
 
   @Mutation(() => Boolean)
