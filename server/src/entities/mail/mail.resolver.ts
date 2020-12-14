@@ -129,4 +129,15 @@ export class MailResolver {
       ],
     };
   }
+
+  @Query(() => [Mail])
+  async mails(@Ctx() { req }: MyContext): Promise<Mail[]> {
+    const user = await getSessionUser(req);
+    if (!user) {
+      return [];
+    }
+
+    const mails = await Mail.find({ relations: ['user'] });
+    return mails;
+  }
 }
