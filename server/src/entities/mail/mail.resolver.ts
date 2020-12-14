@@ -89,15 +89,15 @@ export class MailResolver {
           ],
         };
       }
+      return {
+        errors: [
+          {
+            field: 'unknown',
+            message: e.message,
+          },
+        ],
+      };
     }
-    return {
-      errors: [
-        {
-          field: 'unknown',
-          message: 'unknown',
-        },
-      ],
-    };
   }
 
   @Query(() => MailResponse)
@@ -142,6 +142,62 @@ export class MailResolver {
 
     const res = await Mail.delete({ id });
     return !!res.affected;
+  }
+
+  @Mutation(() => MailResponse)
+  async mailUpdate(
+    @Arg('id', () => Number) id: number,
+    @Arg('options', () => MailInput) options: MailInput,
+    @Ctx() { req }: MyContext
+  ): Promise<MailResponse> {
+    const user = await getSessionUser(req);
+    if (!user) {
+      return {
+        errors: [
+          {
+            field: 'session',
+            message: 'Вы не авторизованы',
+          },
+        ],
+      };
+    }
+    try {
+      await Mail.update({ id }, { ...options });
+      const mail = await Mail.findOne(id, {
+        relations: ['user'],
+      });
+      if (!mail) {
+        return {
+          errors: [
+            {
+              field: 'id',
+              message: 'Такой компании не существует',
+            },
+          ],
+        };
+      }
+      return { mail };
+    } catch (e) {
+      if (e.code === '23505') {
+        const field = e.detail.includes('(mail)') ? 'mail' : 'code';
+        return {
+          errors: [
+            {
+              field,
+              message: `${field} уже существует`,
+            },
+          ],
+        };
+      }
+      return {
+        errors: [
+          {
+            field: 'unknown',
+            message: e.message,
+          },
+        ],
+      };
+    }
   }
 
   @Query(() => [Mail])

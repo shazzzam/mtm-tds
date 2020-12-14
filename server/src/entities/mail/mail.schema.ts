@@ -3,6 +3,8 @@ import {
   BaseEntity,
   Column,
   Entity,
+  CreateDateColumn,
+  UpdateDateColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
@@ -51,4 +53,12 @@ export class Mail extends BaseEntity {
   @Field()
   @Column({ default: true })
   status: boolean;
+
+  @Field(() => String)
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @Field(() => String)
+  @UpdateDateColumn()
+  updatedAt: Date;
 }
