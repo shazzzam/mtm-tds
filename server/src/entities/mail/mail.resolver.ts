@@ -17,6 +17,7 @@ import { getSessionUser } from '../../utils/sessionError';
 import {
   deleteGenericResolver,
   getByIdGenericResolver,
+  updateGenericResolver,
 } from '../../utils/genericResolvers';
 
 @InputType()
@@ -132,54 +133,15 @@ export class MailResolver {
     @Arg('options', () => MailInput) options: MailInput,
     @Ctx() { req }: MyContext
   ): Promise<MailResponse> {
-    const user = await getSessionUser(req);
-    if (!user) {
-      return {
-        errors: [
-          {
-            field: 'session',
-            message: 'Вы не авторизованы',
-          },
-        ],
-      };
-    }
-    try {
-      await Mail.update({ id }, { ...options });
-      const mail = await Mail.findOne(id, {
-        relations: ['user'],
-      });
-      if (!mail) {
-        return {
-          errors: [
-            {
-              field: 'id',
-              message: 'Такой компании не существует',
-            },
-          ],
-        };
-      }
-      return { mail };
-    } catch (e) {
-      if (e.code === '23505') {
-        const field = e.detail.includes('(mail)') ? 'mail' : 'code';
-        return {
-          errors: [
-            {
-              field,
-              message: `${field} уже существует`,
-            },
-          ],
-        };
-      }
-      return {
-        errors: [
-          {
-            field: 'unknown',
-            message: e.message,
-          },
-        ],
-      };
-    }
+    return await updateGenericResolver({
+      id,
+      options,
+      req,
+      model: Mail,
+      modelName: 'mail',
+      uniqueFields: ['mail', 'code'],
+      relations: ['user'],
+    });
   }
 
   @Query(() => [Mail])
