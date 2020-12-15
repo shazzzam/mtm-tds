@@ -70,7 +70,7 @@ export class CompanyResolver {
     try {
       const company = await Company.create({
         ...options,
-        uri: options.uri ? options.uri : await generateUri(),
+        uri: options.uri || (await generateUri()),
         user,
       }).save();
       return { company };

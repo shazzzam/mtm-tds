@@ -15,6 +15,7 @@ import { MyContext } from '../../types';
 import { Link } from './link.schema';
 import { getSessionUser } from '../../utils/sessionError';
 import { PaginatorInput } from '../../types';
+import { getListGenericResolver } from '../../utils/genericResolvers';
 
 @InputType()
 class LinkInput {
@@ -159,27 +160,19 @@ export class LinkResolver {
     paginator: PaginatorInput = { take: 10, skip: 0 },
 
     @Ctx() { req }: MyContext
-  ): Promise<PaginatedLinks> {
-    const user = await getSessionUser(req);
-    if (!user) {
-      return {
-        links: [],
-        hasMore: false,
-      };
-    }
-
-    const links = await Link.find({
-      where: {
-        link: Like(`%${options.link || ''}%`),
-        description: Like(`%${options.description || ''}%`),
+  ): Promise<any> {
+    return await getListGenericResolver({
+      req,
+      model: Link,
+      modelName: 'links',
+      query: {
+        where: {
+          link: Like(`%${options.link || ''}%`),
+          description: Like(`%${options.description || ''}%`),
+        },
+        ...paginator,
+        relations: ['user', 'companies'],
       },
-      ...paginator,
-      relations: ['user'],
     });
-
-    return {
-      links,
-      hasMore: links.length === paginator.take,
-    };
   }
 }
