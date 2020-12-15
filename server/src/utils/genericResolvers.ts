@@ -1,7 +1,8 @@
 import { Request } from 'express';
+
 import { getSessionUser } from './sessionError';
 
-type getByIdType = {
+type GetByIdType = {
   id: number;
   req: Request;
   model: any;
@@ -9,13 +10,13 @@ type getByIdType = {
   relations: Array<string>;
 };
 
-type deleteType = {
+type DeleteType = {
   id: number;
   req: Request;
   model: any;
 };
 
-type updateType = {
+type UpdateType = {
   id: number;
   req: Request;
   options: any;
@@ -25,13 +26,20 @@ type updateType = {
   uniqueFields: Array<string>;
 };
 
+type GetListType = {
+  model: any;
+  modelName: string;
+  req: Request;
+  query: any;
+};
+
 export const getByIdGenericResolver = async ({
   id,
   req,
   model,
   modelName,
   relations,
-}: getByIdType) => {
+}: GetByIdType) => {
   const user = await getSessionUser(req);
   if (!user) {
     return {
@@ -57,7 +65,7 @@ export const getByIdGenericResolver = async ({
   };
 };
 
-export const deleteGenericResolver = async ({ id, req, model }: deleteType) => {
+export const deleteGenericResolver = async ({ id, req, model }: DeleteType) => {
   console.log(typeof model);
   const user = await getSessionUser(req);
   if (!user) {
@@ -76,7 +84,7 @@ export const updateGenericResolver = async ({
   modelName,
   uniqueFields,
   relations,
-}: updateType) => {
+}: UpdateType) => {
   const user = await getSessionUser(req);
   if (!user) {
     return {
@@ -132,4 +140,28 @@ export const updateGenericResolver = async ({
       ],
     };
   }
+};
+
+export const getListGenericResolver = async ({
+  req,
+  model,
+  modelName,
+  query,
+}: GetListType) => {
+  const user = await getSessionUser(req);
+  if (!user) {
+    return {
+      [modelName]: [],
+      hasMore: false,
+    };
+  }
+
+  const items = await model.find(query);
+
+  console.log(items);
+
+  return {
+    [modelName]: items,
+    hasMore: items.length === query.take,
+  };
 };
