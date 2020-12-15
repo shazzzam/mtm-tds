@@ -14,7 +14,10 @@ import { MyContext } from '../../types';
 import { generateUri } from '../../utils/generateUri';
 import { Mail } from './mail.schema';
 import { getSessionUser } from '../../utils/sessionError';
-import { getByIdResolver } from '../../utils/genericResolvers';
+import {
+  deleteGenericResolver,
+  getByIdGenericResolver,
+} from '../../utils/genericResolvers';
 
 @InputType()
 class MailInput {
@@ -106,7 +109,7 @@ export class MailResolver {
     @Arg('id', () => Number) id: number,
     @Ctx() { req }: MyContext
   ): Promise<MailResponse> {
-    return getByIdResolver({
+    return getByIdGenericResolver({
       id,
       req,
       model: Mail,
@@ -120,13 +123,7 @@ export class MailResolver {
     @Arg('id', () => Number) id: number,
     @Ctx() { req }: MyContext
   ): Promise<boolean> {
-    const user = await getSessionUser(req);
-    if (!user) {
-      return false;
-    }
-
-    const res = await Mail.delete({ id });
-    return !!res.affected;
+    return deleteGenericResolver({ id, req, model: Mail });
   }
 
   @Mutation(() => MailResponse)

@@ -9,7 +9,13 @@ type getByIdType = {
   relations: Array<string>;
 };
 
-export const getByIdResolver = async ({
+type deleteType = {
+  id: number;
+  req: Request;
+  model: any;
+};
+
+export const getByIdGenericResolver = async ({
   id,
   req,
   model,
@@ -40,3 +46,16 @@ export const getByIdResolver = async ({
     ],
   };
 };
+
+export const deleteGenericResolver = async ({ id, req, model }: deleteType) => {
+  console.log(typeof model);
+  const user = await getSessionUser(req);
+  if (!user) {
+    return false;
+  }
+
+  const res = await model.delete({ id });
+  return !!res.affected;
+};
+
+export const updateGenericResolver = async () => {};
